@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
 
     if (cached) {
       return new Response(
-        JSON.stringify({ number, meanings: cached.meanings, cached: true }),
+        JSON.stringify({ number, meanings: cached.meanings, sources: cached.sources, cached: true, isTrusted: cached.is_trusted }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -135,6 +135,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    const trustedDomains = [
+      'sacredscribes.blogspot.com',
+      'angelnumbersmeaning.com',
+      'sunnygabay.com',
+      'dailynumber.com',
+      'numerologycenter.com',
+      'numerology.com'
+    ];
+
     const serpUrl = `https://serpapi.com/search.json?q=angel+number+${number}+meaning&api_key=${serpApiKey}`;
     const serpResponse = await fetch(serpUrl);
     const serpData = await serpResponse.json();
@@ -146,10 +155,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    const topUrls = serpData.organic_results
-      .slice(0, 3)
-      .map((result: any) => result.link)
-      .filter(Boolean);
+    const allResults = serpData.organic_results;
+    
+    const trustedResults = allResults.filter((r: any) => 
+      trustedDomains.some(d => r.link?.includes(d))
+    );
+    
+    let topUrls: string[];
+    let isTrusted = false;
+    
+    if (trustedResults.length > 0) {
+      topUrls = trustedResults.slice(0, 3).map((result: any) => result.link).filter(Boolean);
+      isTrusted = true;
+    } else {
+      topUrls = allResults.slice(0, 3).map((result: any) => result.link).filter(Boolean);
+    }
 
     const extractedTexts = await Promise.all(
       topUrls.map(url => extractTextFromUrl(url))
@@ -186,14 +206,14 @@ Deno.serve(async (req) => {
 
     const { error: insertError } = await supabase
       .from('angel_cache')
-      .insert({ number, meanings, sources });
+      .insert({ number, meanings, sources, is_trusted: isTrusted });
 
     if (insertError) {
       console.error('Cache insert error:', insertError);
     }
 
     return new Response(
-      JSON.stringify({ number, meanings, sources, cached: false }),
+      JSON.stringify({ number, meanings, sources, cached: false, isTrusted }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

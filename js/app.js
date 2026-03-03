@@ -29,7 +29,7 @@ async function search() {
     }
 
     if (cache[number]) {
-        displayResult(number, cache[number].meanings, cache[number].sources, true);
+        displayResult(number, cache[number].meanings, cache[number].sources, true, cache[number].isTrusted);
         return;
     }
 
@@ -55,11 +55,11 @@ async function search() {
             throw new Error(data.error);
         }
 
-        cache[number] = { meanings: data.meanings, sources: data.sources };
+        cache[number] = { meanings: data.meanings, sources: data.sources, isTrusted: data.isTrusted };
         
         setTimeout(() => {
             inputArea.classList.add('opacity-50');
-            displayResult(number, data.meanings, data.sources, data.cached || false);
+            displayResult(number, data.meanings, data.sources, data.cached || false, data.isTrusted);
         }, 300);
     } catch (err) {
         showError(err.message || 'Something went wrong. Please try again.');
@@ -68,8 +68,11 @@ async function search() {
     }
 }
 
-function displayResult(number, meaningsList, sourcesList, isCached) {
+function displayResult(number, meaningsList, sourcesList, isCached, isTrusted) {
     resultNumber.textContent = `Angel Number ${number}`;
+    
+    const isSacredScribes = sourcesList?.some(s => s.includes('sacredscribes'));
+    const badge = isSacredScribes ? '<span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">★ Sacred Scribes</span>' : '';
     
     meanings.innerHTML = meaningsList
         .map(meaning => `<p class="text-lg text-spirit-deep/80 leading-relaxed border-l-2 border-spirit-accent pl-4">${meaning}</p>`)

@@ -6,6 +6,7 @@ CREATE TABLE angel_cache (
   number VARCHAR(10) UNIQUE NOT NULL,
   meanings TEXT[] NOT NULL,
   sources TEXT[],
+  is_trusted BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
