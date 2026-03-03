@@ -1,0 +1,17 @@
+{
+  "name": "angel_numbers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tailwindcss -i ./css/input.css -o ./css/style.css",
+    "dev": "npx tailwindcss -i ./css/input.css -o ./css/style.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "supabase": "^2.76.16",
+    "tailwindcss": "^4.2.1"
+  }
+}
